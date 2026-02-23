@@ -29,11 +29,17 @@ async function handleSendMessage() {
                 "Authorization": `Bearer ${API_KEY}`,
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({
-                model: MODEL_ID,
-                messages: [{ role: "user", content: text }],
-                stream: true // Activation du mode streaming !
-            })
+           body: JSON.stringify({
+    model: MODEL_ID,
+    messages: [
+        { 
+            role: "system", 
+            content: "Tu es SakuraBot, un assistant japonais poli et chaleureux. Tu dois IMPÉRATIVEMENT utiliser des kaomojis japonais (comme ^_^, (✿◠‿◠), (◕‿◕), ฅ^•ﻌ•^ฅ) dans chacune de tes réponses pour paraître authentique et mignon." 
+        },
+        { role: "user", content: text }
+    ],
+    stream: true
+})
         });
 
         const reader = response.body.getReader();
