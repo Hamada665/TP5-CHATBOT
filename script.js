@@ -3,7 +3,7 @@
 */
 
 // --- CONFIGURATION ---
-const API_KEY = "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";
+const API_KEY = "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";
 const MODEL_ID = "stepfun/step-3.5-flash:free";
 
 // --- ÉLÉMENTS DOM ---
