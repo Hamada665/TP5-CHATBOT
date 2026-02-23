@@ -233,3 +233,23 @@ button#send-button:hover {
     margin-bottom: 10px; 
 }
 .message-content strong { color: var(--torii-red); } /* Les textes en gras seront en rouge Torii */
+
+/* Style spécial pour les Kaomojis */
+.kaomoji {
+    font-family: 'Arial', 'Segoe UI Emoji', sans-serif;
+    color: var(--torii-red);
+    font-weight: bold;
+    display: inline-block;
+    padding: 0 2px;
+    letter-spacing: 0; /* Important pour que les visages ne s'étirent pas */
+}
+
+/* On améliore aussi la bulle de message pour le contenu Markdown */
+.message-content {
+    word-wrap: break-word;
+    line-height: 1.6;
+}
+
+.message-content p {
+    margin-bottom: 8px;
+}
