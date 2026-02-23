@@ -3,159 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Simple Chatbot - TP 5</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f7f6;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        #chat-container {
-            width: 400px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        #chat-header {
-            background: #007bff;
-            color: white;
-            padding: 15px;
-            text-align: center;
-            font-weight: bold;
-        }
-        #chat-messages {
-            height: 300px;
-            padding: 15px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .message {
-            padding: 10px;
-            border-radius: 8px;
-            max-width: 80%;
-            word-wrap: break-word;
-        }
-        .user-message {
-            background: #007bff;
-            color: white;
-            align-self: flex-end;
-        }
-        .bot-message {
-            background: #e9ecef;
-            color: black;
-            align-self: flex-start;
-        }
-        #chat-input-container {
-            display: flex;
-            padding: 10px;
-            border-top: 1px solid #ddd;
-        }
-        #chat-input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            outline: none;
-        }
-        #send-btn {
-            background: #007bff;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            margin-left: 10px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        #send-btn:hover {
-            background: #0056b3;
-        }
-    </style>
+    <title>SakuraBot | Assistant IA</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="light-theme">
 
-    <div id="chat-container">
-        <div id="chat-header">Chatbot IA - TP5</div>
-        <div id="chat-messages"></div>
-        <div id="chat-input-container">
-            <input type="text" id="chat-input" placeholder="Posez votre question...">
-            <button id="send-btn" onclick="sendMessage()">Envoyer</button>
+    <div id="sakura-container" aria-hidden="true"></div>
+
+    <main class="app-container">
+        <header class="chat-header">
+            <div class="header-info">
+                <div class="bot-avatar">🌸</div>
+                <div class="bot-status">
+                    <h1>SakuraBot</h1>
+                    <span class="status-indicator">En ligne</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button id="theme-toggle" title="Changer de thème">🌙</button>
+                <button id="sound-toggle" title="Activer/Désactiver le son">🔔</button>
+            </div>
+        </header>
+
+        <section id="chat-messages" class="chat-area">
+            <div class="message bot-message fade-in">
+                <div class="message-content">
+                    Konnichiwa ! Je suis SakuraBot. Comment puis-je vous aider dans votre quête aujourd'hui ?
+                </div>
+                <span class="message-time">À l'instant</span>
+            </div>
+        </section>
+
+        <div id="typing-indicator" class="typing-container hidden">
+            <span></span><span></span><span></span>
         </div>
-    </div>
 
-    <script>
-        // Ta clé API OpenRouter et le modèle gratuit choisi
-        const API_KEY = "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";
-        const MODEL = "meta-llama/llama-3-8b-instruct:free"; 
+        <footer class="chat-input-area">
+            <div class="input-wrapper">
+                <input type="text" id="user-input" placeholder="Écrivez votre message..." autocomplete="off">
+                <button id="send-button">
+                    <svg viewBox="0 0 24 24" width="24" height="24">
+                        <path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+                    </svg>
+                </button>
+            </div>
+        </footer>
+    </main>
 
-        async function sendMessage() {
-            const inputField = document.getElementById("chat-input");
-            const message = inputField.value.trim();
-            if (!message) return;
-
-            // Afficher le message de l'utilisateur
-            addMessageToChat(message, "user-message");
-            inputField.value = "";
-
-            // Afficher un message de chargement
-            const loadingId = addMessageToChat("L'IA réfléchit...", "bot-message");
-
-            try {
-                // Appel à l'API OpenRouter
-                const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${API_KEY}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        model: MODEL,
-                        messages: [{ role: "user", content: message }]
-                    })
-                });
-
-                const data = await response.json();
-                
-                // Remplacer le message de chargement par la vraie réponse
-                const botReply = data.choices[0].message.content;
-                document.getElementById(loadingId).innerText = botReply;
-
-            } catch (error) {
-                document.getElementById(loadingId).innerText = "Désolé, une erreur s'est produite.";
-                console.error("Erreur API:", error);
-            }
-        }
-
-        // Fonction pour ajouter visuellement les messages dans la boîte de dialogue
-        function addMessageToChat(text, className) {
-            const messagesContainer = document.getElementById("chat-messages");
-            const messageDiv = document.createElement("div");
-            messageDiv.className = `message ${className}`;
-            messageDiv.innerText = text;
-            
-            // On génère un ID unique au cas où on voudrait modifier le message (pour le chargement)
-            const id = "msg-" + Date.now();
-            messageDiv.id = id;
-            
-            messagesContainer.appendChild(messageDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            return id;
-        }
-
-        // Permet d'envoyer le message en appuyant sur la touche "Entrée"
-        document.getElementById("chat-input").addEventListener("keypress", function(event) {
-            if (event.key === "Enter") {
-                sendMessage();
-            }
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
