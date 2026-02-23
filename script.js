@@ -95,10 +95,12 @@ function addMessage(text, className) {
     const now = new Date();
     const timeString = now.getHours() + ":" + now.getMinutes().toString().padStart(2, '0');
 
-    messageDiv.innerHTML = `
-        <div class="message-content">${text}</div>
-        <span class="message-time">${timeString}</span>
-    `;
+    const formattedText = marked.parse(text);
+
+messageDiv.innerHTML = `
+    <div class="message-content">${formattedText}</div>
+    <span class="message-time">${timeString}</span>
+`;
 
     chatMessages.appendChild(messageDiv);
     scrollToBottom();
