@@ -220,3 +220,16 @@ button#send-button:hover {
 .hidden { display: none; }
 .fade-in { animation: fadeIn 0.5s ease forwards; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Style pour le texte formaté à l'intérieur des messages */
+.message-content p { margin-bottom: 10px; }
+.message-content h1, .message-content h2, .message-content h3 { 
+    font-size: 1.1em; 
+    margin: 10px 0 5px 0;
+    color: var(--accent-indigo);
+}
+.message-content ul, .message-content ol { 
+    margin-left: 20px; 
+    margin-bottom: 10px; 
+}
+.message-content strong { color: var(--torii-red); } /* Les textes en gras seront en rouge Torii */
