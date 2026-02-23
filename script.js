@@ -95,3 +95,12 @@ function scrollToBottom() { chatMessages.scrollTop = chatMessages.scrollHeight; 
 
 sendButton.addEventListener('click', handleSendMessage);
 userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSendMessage(); });
+
+let isSoundEnabled = false;
+const soundToggle = document.getElementById('sound-toggle');
+
+soundToggle.addEventListener('click', () => {
+    isSoundEnabled = !isSoundEnabled;
+    soundToggle.innerText = isSoundEnabled ? '🔔' : '🔕';
+    alert(isSoundEnabled ? "Notifications sonores activées (Konnichiwa! ✨)" : "Mode silencieux activé 🤫");
+});
