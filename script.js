@@ -1,61 +1,24 @@
-/* PROJET : SakuraBot - Logic & AI Integration
-  MODÈLE : Stepfun Step-3.5 Flash (Free)
-*/
+/* SAKURABOT - LOGIC V3 (Streaming & Markdown) */
 
-// --- CONFIGURATION ---
 const API_KEY = "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";
 const MODEL_ID = "stepfun/step-3.5-flash:free";
 
-// --- ÉLÉMENTS DOM ---
 const chatMessages = document.getElementById('chat-messages');
 const userInput = document.getElementById('user-input');
 const sendButton = document.getElementById('send-button');
 const typingIndicator = document.getElementById('typing-indicator');
-const themeToggle = document.getElementById('theme-toggle');
-const sakuraContainer = document.getElementById('sakura-container');
 
-// --- 1. ANIMATION DES PÉTALES (L'esprit Zen) ---
-function createPetal() {
-    const petal = document.createElement('div');
-    petal.classList.add('petal');
-    
-    // Position et taille aléatoire
-    const size = Math.random() * 10 + 10 + 'px';
-    petal.style.width = size;
-    petal.style.height = size;
-    petal.style.left = Math.random() * 100 + 'vw';
-    
-    // Durée de chute aléatoire
-    const duration = Math.random() * 5 + 5 + 's';
-    petal.style.animationDuration = duration;
-
-    sakuraContainer.appendChild(petal);
-
-    // Supprimer le pétale après sa chute pour ne pas alourdir la page
-    setTimeout(() => {
-        petal.remove();
-    }, parseFloat(duration) * 1000);
-}
-
-// Générer des pétales régulièrement
-setInterval(createPetal, 400);
-
-// --- 2. GESTION DU MODE SOMBRE (Kyoto Night) ---
-themeToggle.addEventListener('click', () => {
-    document.body.classList.toggle('dark-theme');
-    themeToggle.innerText = document.body.classList.contains('dark-theme') ? '☀️' : '🌙';
-});
-
-// --- 3. ENVOI DES MESSAGES ---
+// --- FONCTION D'ENVOI AVEC EFFET DE FRAPPE (STREAMING) ---
 async function handleSendMessage() {
     const text = userInput.value.trim();
     if (!text) return;
 
-    // Ajouter le message utilisateur à l'écran
     addMessage(text, 'user-message');
     userInput.value = '';
-
-    // Afficher l'indicateur de réflexion
+    
+    // On crée une bulle vide pour le bot qui va se remplir petit à petit
+    const botMsgId = 'bot-' + Date.now();
+    addEmptyBotMessage(botMsgId);
     typingIndicator.classList.remove('hidden');
     scrollToBottom();
 
@@ -64,54 +27,65 @@ async function handleSendMessage() {
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${API_KEY}`,
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
             },
             body: JSON.stringify({
                 model: MODEL_ID,
-                messages: [{ role: "user", content: text }]
+                messages: [{ role: "user", content: text }],
+                stream: true // Activation du mode streaming !
             })
         });
 
-        const data = await response.json();
-        const botReply = data.choices[0].message.content;
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullText = "";
 
-        // Cacher le chargement et afficher la réponse du bot
-        typingIndicator.classList.add('hidden');
-        addMessage(botReply, 'bot-message');
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
 
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    const dataStr = line.slice(6);
+                    if (dataStr === '[DONE]') break;
+                    try {
+                        const data = JSON.parse(dataStr);
+                        const content = data.choices[0].delta.content || "";
+                        fullText += content;
+                        
+                        // On met à jour la bulle avec le texte formaté en Markdown
+                        document.getElementById(botMsgId).innerHTML = marked.parse(fullText);
+                        typingIndicator.classList.add('hidden');
+                        scrollToBottom();
+                    } catch (e) {}
+                }
+            }
+        }
     } catch (error) {
         typingIndicator.classList.add('hidden');
-        addMessage("Désolé, une perturbation dans le vent empêche SakuraBot de répondre.", 'bot-message');
-        console.error("Erreur API:", error);
+        console.error("Erreur:", error);
     }
 }
 
-// --- 4. FONCTIONS UTILITAIRES ---
+// --- UTILITAIRES ---
 function addMessage(text, className) {
-    const messageDiv = document.createElement('div');
-    messageDiv.classList.add('message', className, 'fade-in');
-    
-    // Heure actuelle
-    const now = new Date();
-    const timeString = now.getHours() + ":" + now.getMinutes().toString().padStart(2, '0');
-
-    const formattedText = marked.parse(text);
-
-messageDiv.innerHTML = `
-    <div class="message-content">${formattedText}</div>
-    <span class="message-time">${timeString}</span>
-`;
-
-    chatMessages.appendChild(messageDiv);
-    scrollToBottom();
+    const div = document.createElement('div');
+    div.className = `message ${className} fade-in`;
+    div.innerHTML = `<div class="message-content">${marked.parse(text)}</div>`;
+    chatMessages.appendChild(div);
 }
 
-function scrollToBottom() {
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+function addEmptyBotMessage(id) {
+    const div = document.createElement('div');
+    div.className = `message bot-message fade-in`;
+    div.innerHTML = `<div class="message-content" id="${id}">...</div>`;
+    chatMessages.appendChild(div);
 }
 
-// Écouteurs d'événements (Clic et Touche Entrée)
+function scrollToBottom() { chatMessages.scrollTop = chatMessages.scrollHeight; }
+
 sendButton.addEventListener('click', handleSendMessage);
-userInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') handleSendMessage();
-});
+userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSendMessage(); });
